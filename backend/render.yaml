@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: agent-backend
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DB_TYPE
+        value: sqlite
+      - key: DB_PATH
+        value: ./data/agent_security.db
+      - key: FRONTEND_URL
+        value: https://frontend-96fljnqrt-duliangkuans-projects.vercel.app
+    disk:
+      name: agent-db
+      mountPath: /opt/render/project/src/data
+      sizeGB: 1
+
