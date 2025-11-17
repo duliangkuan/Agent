@@ -36,7 +36,11 @@ function DetectionFlow() {
 
   useEffect(() => {
     // Initialize WebSocket connection
-    const newSocket = io('http://localhost:8000');
+    // Use REACT_APP_API_URL without /api suffix, or default to localhost
+    const apiUrl = process.env.REACT_APP_API_URL 
+      ? process.env.REACT_APP_API_URL.replace('/api', '')
+      : 'http://localhost:8000';
+    const newSocket = io(apiUrl);
     setSocket(newSocket);
 
     // Listen for test progress updates
