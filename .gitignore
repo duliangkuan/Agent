@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Build outputs
+dist/
+build/
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Database
+*.db
+*.sqlite
+
+# Uploads and temp files
+uploads/
+temp/
+*.pdf
+*.xlsx
+
+# Testing
+coverage/
+.nyc_output/
+
+# Misc
+.cache/
+*.pem
+
+# Vercel
+.vercel
