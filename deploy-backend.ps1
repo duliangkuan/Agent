@@ -1,132 +1,132 @@
-# Railway 后端一键部署脚本 (PowerShell)
-# 使用方法：在项目根目录运行 .\deploy-backend.ps1
+# Railway Backend Deployment Script
+# Usage: .\deploy-backend.ps1
 
 param(
     [switch]$SkipLogin
 )
 
-Write-Host "`n🚀 Railway 后端一键部署脚本" -ForegroundColor Green
-Write-Host "=" * 50 -ForegroundColor Cyan
+Write-Host ""
+Write-Host "Railway Backend Deployment Script" -ForegroundColor Green
+Write-Host ("=" * 50) -ForegroundColor Cyan
 
-# 检查 Railway CLI
-Write-Host "`n📦 检查 Railway CLI..." -ForegroundColor Cyan
+# Check Railway CLI
+Write-Host ""
+Write-Host "Checking Railway CLI..." -ForegroundColor Cyan
 if (-not (Get-Command railway -ErrorAction SilentlyContinue)) {
-    Write-Host "❌ Railway CLI 未安装，正在安装..." -ForegroundColor Yellow
+    Write-Host "Installing Railway CLI..." -ForegroundColor Yellow
     npm install -g @railway/cli
     if ($LASTEXITCODE -ne 0) {
-        Write-Host "❌ 安装失败，请手动运行: npm install -g @railway/cli" -ForegroundColor Red
+        Write-Host "Failed to install Railway CLI" -ForegroundColor Red
         exit 1
     }
 }
-Write-Host "✅ Railway CLI 已安装" -ForegroundColor Green
+Write-Host "Railway CLI installed" -ForegroundColor Green
 
-# 进入后端目录
+# Navigate to backend directory
 $backendPath = Join-Path $PSScriptRoot "backend"
 if (-not (Test-Path $backendPath)) {
-    Write-Host "❌ 找不到 backend 目录" -ForegroundColor Red
+    Write-Host "Backend directory not found" -ForegroundColor Red
     exit 1
 }
 Set-Location $backendPath
-Write-Host "✅ 已进入 backend 目录" -ForegroundColor Green
+Write-Host "Entered backend directory" -ForegroundColor Green
 
-# 登录 Railway（如果需要）
-Write-Host "`n🔐 检查 Railway 登录状态..." -ForegroundColor Cyan
-try {
-    $whoami = railway whoami 2>&1
-    if ($LASTEXITCODE -eq 0) {
-        Write-Host "✅ 已登录 Railway: $whoami" -ForegroundColor Green
-    } else {
-        throw "Not logged in"
-    }
-} catch {
+# Check Railway login
+Write-Host ""
+Write-Host "Checking Railway login status..." -ForegroundColor Cyan
+$whoamiResult = railway whoami 2>&1
+if ($LASTEXITCODE -eq 0) {
+    Write-Host "Logged in to Railway: $whoamiResult" -ForegroundColor Green
+} else {
     if (-not $SkipLogin) {
-        Write-Host "⚠️  需要登录 Railway" -ForegroundColor Yellow
-        Write-Host "   正在打开浏览器进行登录..." -ForegroundColor Yellow
-        Write-Host "   如果浏览器没有自动打开，请访问: https://railway.app" -ForegroundColor Yellow
+        Write-Host "Need to login to Railway" -ForegroundColor Yellow
+        Write-Host "Opening browser for login..." -ForegroundColor Yellow
         railway login
         if ($LASTEXITCODE -ne 0) {
-            Write-Host "❌ 登录失败，请手动运行: railway login" -ForegroundColor Red
+            Write-Host "Login failed. Please run: railway login" -ForegroundColor Red
             exit 1
         }
     } else {
-        Write-Host "❌ 未登录，请先运行: railway login" -ForegroundColor Red
+        Write-Host "Not logged in. Please run: railway login" -ForegroundColor Red
         exit 1
     }
 }
 
-# 检查是否已链接项目
-Write-Host "`n🔗 检查项目链接..." -ForegroundColor Cyan
+# Check project link
+Write-Host ""
+Write-Host "Checking project link..." -ForegroundColor Cyan
 $railwayConfig = Join-Path $backendPath ".railway\project.json"
 if (-not (Test-Path $railwayConfig)) {
-    Write-Host "📝 未找到项目配置，需要初始化..." -ForegroundColor Yellow
-    Write-Host "   请选择以下选项之一:" -ForegroundColor Yellow
-    Write-Host "   1. Empty Project (创建新项目)" -ForegroundColor Cyan
-    Write-Host "   2. Deploy from GitHub repo (从 GitHub 部署)" -ForegroundColor Cyan
-    Write-Host "`n   推荐选择选项 2，然后选择仓库: duliangkuan/Agent" -ForegroundColor Yellow
+    Write-Host "Project not configured. Initializing..." -ForegroundColor Yellow
+    Write-Host "Please select:" -ForegroundColor Yellow
+    Write-Host "1. Empty Project" -ForegroundColor Cyan
+    Write-Host "2. Deploy from GitHub repo" -ForegroundColor Cyan
+    Write-Host "Recommended: Option 2, then select repo: duliangkuan/Agent" -ForegroundColor Yellow
     railway init
     if ($LASTEXITCODE -ne 0) {
-        Write-Host "❌ 初始化失败" -ForegroundColor Red
+        Write-Host "Initialization failed" -ForegroundColor Red
         exit 1
     }
 } else {
-    Write-Host "✅ 项目已链接" -ForegroundColor Green
+    Write-Host "Project already linked" -ForegroundColor Green
     railway link
 }
 
-# 设置环境变量
-Write-Host "`n⚙️  配置环境变量..." -ForegroundColor Cyan
-$envVars = @{
-    "DB_TYPE" = "sqlite"
-    "DB_PATH" = "./data/agent_security.db"
-    "NODE_ENV" = "production"
-    "FRONTEND_URL" = "https://frontend-96fljnqrt-duliangkuans-projects.vercel.app"
-}
+# Set environment variables
+Write-Host ""
+Write-Host "Configuring environment variables..." -ForegroundColor Cyan
+railway variables set DB_TYPE=sqlite
+railway variables set DB_PATH=./data/agent_security.db
+railway variables set NODE_ENV=production
+railway variables set FRONTEND_URL=https://frontend-96fljnqrt-duliangkuans-projects.vercel.app
+Write-Host "Environment variables configured" -ForegroundColor Green
 
-foreach ($key in $envVars.Keys) {
-    Write-Host "   设置 $key = $($envVars[$key])" -ForegroundColor Gray
-    railway variables set "$key=$($envVars[$key])" | Out-Null
-}
-Write-Host "✅ 环境变量配置完成" -ForegroundColor Green
-
-# 部署
-Write-Host "`n🚀 开始部署到 Railway..." -ForegroundColor Green
-Write-Host "   这可能需要几分钟时间..." -ForegroundColor Yellow
+# Deploy
+Write-Host ""
+Write-Host "Deploying to Railway..." -ForegroundColor Green
+Write-Host "This may take a few minutes..." -ForegroundColor Yellow
 railway up
 
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "❌ 部署失败，请查看上面的错误信息" -ForegroundColor Red
+    Write-Host "Deployment failed. Check error messages above." -ForegroundColor Red
     exit 1
 }
 
-# 等待部署完成
-Write-Host "`n⏳ 等待部署完成..." -ForegroundColor Yellow
+# Wait for deployment
+Write-Host ""
+Write-Host "Waiting for deployment to complete..." -ForegroundColor Yellow
 Start-Sleep -Seconds 15
 
-# 获取部署 URL
-Write-Host "`n📋 获取部署域名..." -ForegroundColor Cyan
-$domain = railway domain 2>&1
-Write-Host "`n✅ 部署完成！" -ForegroundColor Green
-Write-Host "`n🌐 后端 URL: $domain" -ForegroundColor Cyan
-Write-Host "   API 地址: $domain/api" -ForegroundColor Cyan
+# Get deployment URL
+Write-Host ""
+Write-Host "Getting deployment domain..." -ForegroundColor Cyan
+$domainOutput = railway domain 2>&1
+Write-Host ""
+Write-Host "Deployment completed!" -ForegroundColor Green
+Write-Host "Backend URL: $domainOutput" -ForegroundColor Cyan
+Write-Host "API URL: $domainOutput/api" -ForegroundColor Cyan
 
-# 初始化数据库
-Write-Host "`n🗄️  初始化数据库..." -ForegroundColor Cyan
+# Initialize database
+Write-Host ""
+Write-Host "Initializing database..." -ForegroundColor Cyan
 railway run npm run db:init
 
 if ($LASTEXITCODE -eq 0) {
-    Write-Host "✅ 数据库初始化完成" -ForegroundColor Green
+    Write-Host "Database initialized" -ForegroundColor Green
 } else {
-    Write-Host "⚠️  数据库初始化可能失败，请检查日志" -ForegroundColor Yellow
+    Write-Host "Database initialization may have failed. Check logs." -ForegroundColor Yellow
 }
 
-# 返回原目录
+# Return to original directory
 Set-Location $PSScriptRoot
 
-Write-Host "`n" + ("=" * 50) -ForegroundColor Cyan
-Write-Host "✅ 部署流程完成！" -ForegroundColor Green
-Write-Host "`n📝 下一步操作:" -ForegroundColor Yellow
-Write-Host "   1. 复制上面的后端 URL" -ForegroundColor White
-Write-Host "   2. 访问 Vercel Dashboard: https://vercel.com/duliangkuans-projects/frontend/settings" -ForegroundColor White
-Write-Host "   3. 添加环境变量 REACT_APP_API_URL = $domain/api" -ForegroundColor White
-Write-Host "   4. 重新部署前端: cd frontend && vercel --prod" -ForegroundColor White
-Write-Host "`n"
+Write-Host ""
+Write-Host ("=" * 50) -ForegroundColor Cyan
+Write-Host "Deployment process completed!" -ForegroundColor Green
+Write-Host ""
+Write-Host "Next steps:" -ForegroundColor Yellow
+Write-Host "1. Copy the backend URL above" -ForegroundColor White
+Write-Host "2. Go to Vercel Dashboard: https://vercel.com/duliangkuans-projects/frontend/settings" -ForegroundColor White
+Write-Host "3. Add environment variable REACT_APP_API_URL = $domainOutput/api" -ForegroundColor White
+Write-Host "4. Redeploy frontend: cd frontend && vercel --prod" -ForegroundColor White
+Write-Host ""
