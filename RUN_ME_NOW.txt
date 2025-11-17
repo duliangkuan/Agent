@@ -1,0 +1,27 @@
+========================================
+Railway 后端一键部署命令
+========================================
+
+请在你的终端中（确保已登录 Railway），复制粘贴以下命令：
+
+cd backend
+
+railway init
+# 选择: Deploy from GitHub repo -> duliangkuan/Agent
+
+railway variables set DB_TYPE=sqlite
+railway variables set DB_PATH=./data/agent_security.db
+railway variables set NODE_ENV=production
+railway variables set FRONTEND_URL=https://frontend-96fljnqrt-duliangkuans-projects.vercel.app
+
+railway up
+
+railway domain
+
+railway run npm run db:init
+
+========================================
+完成后，复制 railway domain 输出的 URL
+然后更新 Vercel 环境变量
+========================================
+

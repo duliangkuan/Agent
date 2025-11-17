@@ -2,6 +2,10 @@
   "version": 2,
   "builds": [
     {
+      "src": "api/serverless.js",
+      "use": "@vercel/node"
+    },
+    {
       "src": "frontend/package.json",
       "use": "@vercel/static-build",
       "config": {
@@ -12,7 +16,7 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "/api/$1"
+      "dest": "/api/serverless.js"
     },
     {
       "src": "/(.*)",
